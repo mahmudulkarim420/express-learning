@@ -8,6 +8,7 @@ const config = {
   connection_string: process.env.CONNECTION_STRING as string,
   port: process.env.PORT,
   secret_key: process.env.SECRET_KEY as string,
+  refresh_secret: process.env.REFRESH_SECRET as string,
 };
 
 export default config;

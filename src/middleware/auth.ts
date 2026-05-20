@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import config from "../config";
 import type { NextFunction, Request, Response } from "express";
 import { pool } from "../db";
+import type { Roles } from "../types";
 
 declare global {
   namespace Express {
@@ -11,7 +12,7 @@ declare global {
   }
 }
 
-const auth = async (req: Request, res: Response, next: NextFunction) => {
+const auth = (...role: Roles[]) => async (req: Request, res: Response, next: NextFunction) => {
   try {
     let token = req.headers.authorization;
 
@@ -34,6 +35,13 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(404).json({
         success: false,
         message: "User Not Found",
+      });
+    }
+
+    if(role.length && !role.includes(user.rows[0].role)){
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized - Insufficient permissions",
       });
     }
     next();

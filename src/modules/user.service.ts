@@ -3,24 +3,24 @@ import * as bcrypt from "bcrypt";
 import type { IUser } from "./user/user.interface";
 
 const createUserIntoDB = async (payload: IUser) => {
-  const { name, email, password, age } = payload;
+  const { name, email, password, age, role } = payload;
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const result = await pool.query(
     `
-      INSERT INTO users(name, email, password, age)
-      VALUES($1, $2, $3, $4)
-      RETURNING id, name, email, age, isActive AS "isActive", create_at
+      INSERT INTO users(name, email, password, age, role)
+      VALUES($1, $2, $3, $4, COALESCE($5, 'user'))
+      RETURNING id, name, email, age, role, isActive AS "isActive", create_at
       `,
-    [name, email, hashedPassword, age],
+    [name, email, hashedPassword, age, role],
   );
   return result;
 };
 
 const getAllUserFromDB = async () => {
   const result = await pool.query(`
-      SELECT id, name, email, age, isActive AS "isActive", create_at 
+      SELECT id, name, email, age, role, isActive AS "isActive", create_at 
       FROM users
     `);
   return result;
@@ -29,7 +29,7 @@ const getAllUserFromDB = async () => {
 const getUserByIdFromDB = async (id: string) => {
   const result = await pool.query(
     `
-      SELECT id, name, email, age, isActive AS "isActive", create_at
+      SELECT id, name, email, age, role, isActive AS "isActive", create_at
       FROM users
       WHERE id=$1
       `,
@@ -53,7 +53,7 @@ const updateUserIntoDB = async (id: string, payload: Partial<IUser>) => {
         age = COALESCE($4, age),
         updated_at = NOW()
       WHERE id=$5
-      RETURNING id, name, email, age, isActive AS "isActive", create_at, updated_at
+      RETURNING id, name, email, age, role, isActive AS "isActive", create_at, updated_at
       `,
     [name, email, hashedPassword, age, id],
   );
